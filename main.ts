@@ -45,9 +45,8 @@ class ResultsView extends ItemView {
 		contentDiv.style.fontSize = '0.7em';
 
 		this.content.split('\n').forEach(line => {
-				contentDiv.createDiv({
-					text: line
-				});
+			const lineEl = contentDiv.createDiv();
+			lineEl.innerHTML = line;
 		});
 	}
 }
@@ -133,7 +132,7 @@ export default class FMI extends Plugin {
 
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
-							const logMessage = `${file.path} at line ${index + 1}: ${imageFile}`;
+							const logMessage = `• "<b>${file.path}</b>" at line ${index + 1}: "<i>${imageFile}</i>"`;
 							results.push(logMessage);
 							brokenLinksCount++;
 						}
