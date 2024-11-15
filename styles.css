@@ -1,6 +1,7 @@
 .vts-results-content {
     padding: 10px;
     user-select: text;
+    font-size: 0.85em;
 }
 
 .vts-results-content div {

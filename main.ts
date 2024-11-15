@@ -56,8 +56,6 @@ class ResultsView extends ItemView {
 			cls: 'vts-results-content'
 		});
 
-		contentDiv.style.fontSize = '0.7em';
-
 		if (this.content.includes('---')) {
 			const lines = this.content.split('\n');
 			lines.forEach(line => {
@@ -67,7 +65,7 @@ class ResultsView extends ItemView {
 					});
 					summaryEl.createEl('strong', { text: line });
 				} else if (line.includes('"') && !line.startsWith('---')) {
-					const [filePath, ...rest] = line.substring(2).split('" at line ');
+					const [filePath, ...rest] = line.substring(2).split('" line ');
 					const lineEl = contentDiv.createDiv();
 					lineEl.createSpan({ text: '• ' });
 					
@@ -85,7 +83,7 @@ class ResultsView extends ItemView {
 					});
 					
 					const [lineNum, imageText] = rest[0].split(': ');
-					lineEl.createSpan({ text: ` at line ${lineNum}: ` });
+					lineEl.createSpan({ text: ` line ${lineNum}: ` });
 					
 					const italicMatch = imageText.match(/"<i>(.*?)<\/i>"/);
 					if (italicMatch) {
@@ -184,7 +182,7 @@ export default class FMI extends Plugin {
 
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
-							const logMessage = `• "${file.path}" at line ${index + 1}: "<i>${imageFile}</i>"`;
+							const logMessage = `• "${file.path}" line ${index + 1}: "<i>${imageFile}</i>"`;
 								results.push(logMessage);
 								brokenLinksCount++;
 						}
