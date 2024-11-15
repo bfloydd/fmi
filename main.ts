@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFolder } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFolder, WorkspaceLeaf, ItemView, ViewStateResult } from 'obsidian';
 
 interface FMISettings {
 	attachmentsFolder: string;
@@ -10,8 +10,47 @@ const DEFAULT_SETTINGS: FMISettings = {
 	mySetting: 'default'
 }
 
+const VIEW_TYPE_RESULTS = "vts-results-view";
+
+class ResultsView extends ItemView {
+	private content: string = '';
+
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+	}
+
+	getViewType(): string {
+		return VIEW_TYPE_RESULTS;
+	}
+
+	getDisplayText(): string {
+		return "VTS Results";
+	}
+
+	async setContent(content: string) {
+		this.content = content;
+		await this.updateView();
+	}
+
+	async updateView() {
+		const container = this.containerEl.children[1];
+		container.empty();
+		
+		const contentDiv = container.createDiv({
+			cls: 'vts-results-content'
+		});
+
+		this.content.split('\n').forEach(line => {
+			contentDiv.createDiv({
+				text: line
+			});
+		});
+	}
+}
+
 export default class FMI extends Plugin {
 	settings: FMISettings;
+	private resultsView: ResultsView;
 
 	async onload() {
 		await this.loadSettings();
@@ -26,9 +65,15 @@ export default class FMI extends Plugin {
 				this.findBrokenImageLinks();
 			}
 		});
+
+		this.registerView(
+			VIEW_TYPE_RESULTS,
+			(leaf) => (this.resultsView = new ResultsView(leaf))
+		);
 	}
 
 	onunload() {
+		this.app.workspace.detachLeavesOfType(VIEW_TYPE_RESULTS);
 	}
 
 	async loadSettings() {
@@ -60,6 +105,7 @@ export default class FMI extends Plugin {
 		let brokenLinksCount = 0;
 		const files = this.app.vault.getMarkdownFiles();
 		const attachmentsPath = this.settings.attachmentsFolder;
+		let results: string[] = [];
 
 		if (!attachmentsPath) {
 			new Notice('Please select an attachments folder in settings first!');
@@ -84,22 +130,40 @@ export default class FMI extends Plugin {
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
 							const logMessage = `Broken link found in file '${file.path}' at line ${index + 1}: ${imageFile}`;
-							console.log(logMessage);
-							const logRegex = /Broken link found in file .* line \d+: (.+)/;
-							const match = logRegex.exec(logMessage);
-							if (match) {
-								const filename = match[1].split('/').pop() || '';
-							}
+							results.push(logMessage);
 							brokenLinksCount++;
 						}
 					});
 				});
 			} catch (error) {
-				console.error(`Error processing file '${file.path}':`, error);
+				results.push(`Error processing file '${file.path}': ${error}`);
 			}
 		}
 
-		new Notice(`Total broken links found: ${brokenLinksCount}`);
+		const view = await this.activateView();
+		if (view) {
+			await view.setContent(results.join('\n'));
+			new Notice(`Total broken links found: ${brokenLinksCount}`);
+		}
+	}
+
+	async activateView() {
+		const { workspace } = this.app;
+		
+		let leaf = workspace.getLeavesOfType(VIEW_TYPE_RESULTS)[0];
+		
+		if (!leaf) {
+			const rightLeaf = workspace.getRightLeaf(false);
+			if (!rightLeaf) return null;
+			leaf = rightLeaf;
+			await leaf.setViewState({
+				type: VIEW_TYPE_RESULTS,
+				active: true,
+			});
+		}
+		
+		workspace.revealLeaf(leaf);
+		return this.resultsView;
 	}
 }
 

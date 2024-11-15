@@ -1,0 +1,10 @@
+.vts-results-content {
+    padding: 10px;
+    user-select: text;
+}
+
+.vts-results-content div {
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
