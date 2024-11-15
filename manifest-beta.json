@@ -1,7 +1,7 @@
 {
 	"id": "fmi",
 	"name": "FMI - Find Missing Images",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"minAppVersion": "0.15.0",
 	"description": "Find and list missing images in your Obsidian vault.",
 	"author": "Ben Floyd",
