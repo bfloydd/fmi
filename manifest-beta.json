@@ -1,0 +1,11 @@
+{
+	"id": "fmi",
+	"name": "Find missing images",
+	"version": "0.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "Find and list missing images in your Obsidian vault.",
+	"author": "Ben Floyd",
+	"authorUrl": "https://b.floy.dev",
+	"fundingUrl": "https://paypal.me/bfloydd",
+	"isDesktopOnly": false
+}
