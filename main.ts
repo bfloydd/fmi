@@ -58,10 +58,22 @@ class ResultsView extends ItemView {
 
 		contentDiv.style.fontSize = '0.7em';
 
-		this.content.split('\n').forEach(line => {
-			const lineEl = contentDiv.createDiv();
-			lineEl.innerHTML = line;
-		});
+		if (this.content.includes('---')) {
+			const lines = this.content.split('\n');
+			lines.forEach(line => {
+				const lineEl = contentDiv.createDiv();
+				if (line === '---') {
+					lineEl.createEl('hr');
+				} else {
+					lineEl.innerHTML = line;
+				}
+			});
+		} else {
+			this.content.split('\n').forEach(line => {
+				const lineEl = contentDiv.createDiv();
+				lineEl.innerHTML = line;
+			});
+		}
 	}
 }
 
@@ -133,13 +145,13 @@ export default class FMI extends Plugin {
 			try {
 				const content = await this.app.vault.read(file);
 				const lines = content.split('\n');
+				const checksForFile: Promise<void>[] = [];
 
 				lines.forEach((line, index) => {
 					const imageLinks = this.extractImageLinks(line);
-
-					imageLinks.forEach(async (imageFile) => {
+					
+					const lineChecks = imageLinks.map(async (imageFile) => {
 						let imagePath = imageFile;
-
 						if (!imagePath.includes('/')) {
 							imagePath = `${attachmentsPath}/${imageFile}`;
 						}
@@ -147,11 +159,16 @@ export default class FMI extends Plugin {
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
 							const logMessage = `• "<b>${file.path}</b>" at line ${index + 1}: "<i>${imageFile}</i>"`;
-							results.push(logMessage);
-							brokenLinksCount++;
+								results.push(logMessage);
+								brokenLinksCount++;
 						}
 					});
+
+					checksForFile.push(...lineChecks);
 				});
+
+				await Promise.all(checksForFile);
+
 			} catch (error) {
 				results.push(`Error processing file '${file.path}': ${error}`);
 			}
@@ -159,6 +176,7 @@ export default class FMI extends Plugin {
 
 		const view = await this.activateView();
 		if (view) {
+			results.push(`\n---\nSummary:\nBroken links found: ${brokenLinksCount}`);
 			await view.setContent(results.join('\n'));
 			new Notice(`Total broken links found: ${brokenLinksCount}`);
 		}
