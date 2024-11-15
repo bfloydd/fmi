@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, TFolder, WorkspaceLeaf, ItemView } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFolder, WorkspaceLeaf, ItemView, TFile } from 'obsidian';
 
 interface FMISettings {
 	attachmentsFolder: string;
@@ -78,9 +78,9 @@ class ResultsView extends ItemView {
 					
 					link.addEventListener('click', (event) => {
 						event.preventDefault();
-						const tfile = this.app.vault.getFileByPath(filePath);
-						if (tfile) {
-							this.app.workspace.getLeaf().openFile(tfile);
+						const file = this.app.vault.getAbstractFileByPath(filePath.replace(/"/g, ''));
+						if (file instanceof TFile) {
+							this.app.workspace.getLeaf(false).openFile(file);
 						}
 					});
 					
