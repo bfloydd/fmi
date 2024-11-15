@@ -1,12 +1,10 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting, TFolder, WorkspaceLeaf, ItemView, TFile } from 'obsidian';
 
 interface FMISettings {
-	attachmentsFolder: string;
 	mySetting: string;
 }
 
 const DEFAULT_SETTINGS: FMISettings = {
-	attachmentsFolder: '',
 	mySetting: 'default'
 }
 
@@ -111,8 +109,6 @@ export default class FMI extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		this.addSettingTab(new FMISettingsTab(this.app, this));
-
 		this.addCommand({
 			id: 'find-broken-image-links',
 			name: 'Search',
@@ -152,20 +148,10 @@ export default class FMI extends Plugin {
 		return matches;
 	}
 
-	private async imageExists(imagePath: string): Promise<boolean> {
-		return await this.app.vault.adapter.exists(imagePath);
-	}
-
 	private async findBrokenImageLinks(): Promise<void> {
 		let brokenLinksCount = 0;
 		const files = this.app.vault.getMarkdownFiles();
-		const attachmentsPath = this.settings.attachmentsFolder;
 		let results: string[] = [];
-
-		if (!attachmentsPath) {
-			new Notice('Please select an attachments folder in settings first!');
-			return;
-		}
 
 		for (const file of files) {
 			try {
@@ -175,18 +161,13 @@ export default class FMI extends Plugin {
 
 				lines.forEach((line, index) => {
 					const imageLinks = this.extractImageLinks(line);
-					
-					const lineChecks = imageLinks.map(async (imageFile) => {
-						let imagePath = imageFile;
-						if (!imagePath.includes('/')) {
-							imagePath = `${attachmentsPath}/${imageFile}`;
-						}
 
-						const exists = await this.imageExists(imagePath);
+					const lineChecks = imageLinks.map(async (imageFile) => {
+						const exists = await this.imageExistsInVault(imageFile);
 						if (!exists) {
 							const logMessage = `• "${file.path}" line ${index + 1}: "<i>${imageFile}</i>"`;
-								results.push(logMessage);
-								brokenLinksCount++;
+							results.push(logMessage);
+							brokenLinksCount++;
 						}
 					});
 
@@ -209,6 +190,11 @@ export default class FMI extends Plugin {
 		}
 	}
 
+	private async imageExistsInVault(imageFile: string): Promise<boolean> {
+		const allFiles = this.app.vault.getFiles();
+		return allFiles.some(file => file.name === imageFile);
+	}
+
 	async activateView() {
 		const { workspace } = this.app;
 		
@@ -226,53 +212,5 @@ export default class FMI extends Plugin {
 		
 		workspace.revealLeaf(leaf);
 		return this.resultsView;
-	}
-}
-
-class FMISettingsTab extends PluginSettingTab {
-	plugin: FMI;
-
-	constructor(app: App, plugin: FMI) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Attachments Folder')
-			.setDesc('Select the folder where your attachments are stored')
-			.addDropdown(dropdown => {
-				const folders = this.getFolders();
-				
-				dropdown.addOption('', '-- Select Folder --');
-				
-				folders.forEach(folder => {
-					dropdown.addOption(folder, folder);
-				});
-
-				dropdown.setValue(this.plugin.settings.attachmentsFolder)
-					.onChange(async (value) => {
-						this.plugin.settings.attachmentsFolder = value;
-						await this.plugin.saveSettings();
-					});
-			});
-	}
-
-	private getFolders(): string[] {
-		const folders: string[] = [];
-		
-		const files = this.app.vault.getAllLoadedFiles();
-		
-		files.forEach(file => {
-			if (file instanceof TFolder) {
-				folders.push(file.path);
-			}
-		});
-		
-		return folders.sort();
 	}
 }
