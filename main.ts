@@ -36,14 +36,18 @@ class ResultsView extends ItemView {
 		const container = this.containerEl.children[1];
 		container.empty();
 		
+		container.createEl('h2', { text: 'Find Missing Images' });
+		
 		const contentDiv = container.createDiv({
 			cls: 'vts-results-content'
 		});
 
+		contentDiv.style.fontSize = '0.7em';
+
 		this.content.split('\n').forEach(line => {
-			contentDiv.createDiv({
-				text: line
-			});
+				contentDiv.createDiv({
+					text: line
+				});
 		});
 	}
 }
@@ -129,7 +133,7 @@ export default class FMI extends Plugin {
 
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
-							const logMessage = `Broken link found in file '${file.path}' at line ${index + 1}: ${imageFile}`;
+							const logMessage = `${file.path} at line ${index + 1}: ${imageFile}`;
 							results.push(logMessage);
 							brokenLinksCount++;
 						}
