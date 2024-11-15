@@ -36,7 +36,21 @@ class ResultsView extends ItemView {
 		const container = this.containerEl.children[1];
 		container.empty();
 		
-		container.createEl('h2', { text: 'Find Missing Images' });
+		const headerContainer = container.createDiv({
+			cls: 'vts-results-header'
+		});
+		
+		headerContainer.createEl('h2', { text: 'Find Missing Images' });
+		
+		const copyButton = headerContainer.createEl('button', {
+			cls: 'vts-copy-button',
+			text: 'Copy Results'
+		});
+		
+		copyButton.addEventListener('click', () => {
+			navigator.clipboard.writeText(this.content);
+			new Notice('Results copied to clipboard!');
+		});
 		
 		const contentDiv = container.createDiv({
 			cls: 'vts-results-content'
