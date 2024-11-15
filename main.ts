@@ -112,7 +112,6 @@ export default class FMI extends Plugin {
 		await this.loadSettings();
 
 		this.addSettingTab(new SampleSettingTab(this.app, this));
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 
 		this.addCommand({
 			id: 'find-broken-image-links',
