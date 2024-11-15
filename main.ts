@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS: FMISettings = {
 	mySetting: 'default'
 }
 
-const VIEW_TYPE_RESULTS = "vts-results-view";
+const VIEW_TYPE_RESULTS = "fmi-results-view";
 
 class ResultsView extends ItemView {
 	private content: string = '';
@@ -24,7 +24,7 @@ class ResultsView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "VTS Results";
+		return "FMI Results";
 	}
 
 	async setContent(content: string) {
@@ -37,13 +37,13 @@ class ResultsView extends ItemView {
 		container.empty();
 		
 		const headerContainer = container.createDiv({
-			cls: 'vts-results-header'
+			cls: 'fmi-results-header'
 		});
 		
 		headerContainer.createEl('h2', { text: 'Find Missing Images' });
 		
 		const copyButton = headerContainer.createEl('button', {
-			cls: 'vts-copy-button',
+			cls: 'fmi-copy-button',
 			text: 'Copy Results'
 		});
 		
@@ -53,17 +53,19 @@ class ResultsView extends ItemView {
 		});
 		
 		const contentDiv = container.createDiv({
-			cls: 'vts-results-content'
+			cls: 'fmi-results-content'
 		});
 
 		if (this.content.includes('---')) {
 			const lines = this.content.split('\n');
+			
 			lines.forEach(line => {
 				if (line.startsWith('Summary:')) {
 					const summaryEl = contentDiv.createEl('div', {
-						cls: 'vts-results-summary'
+						cls: 'fmi-results-summary'
 					});
 					summaryEl.createEl('strong', { text: line });
+
 				} else if (line.includes('"') && !line.startsWith('---')) {
 					const [filePath, ...rest] = line.substring(2).split('" line ');
 					const lineEl = contentDiv.createDiv();
