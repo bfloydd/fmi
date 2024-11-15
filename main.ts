@@ -111,7 +111,7 @@ export default class FMI extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new FMISettingsTab(this.app, this));
 
 		this.addCommand({
 			id: 'find-broken-image-links',
@@ -229,7 +229,7 @@ export default class FMI extends Plugin {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class FMISettingsTab extends PluginSettingTab {
 	plugin: FMI;
 
 	constructor(app: App, plugin: FMI) {
