@@ -61,11 +61,38 @@ class ResultsView extends ItemView {
 		if (this.content.includes('---')) {
 			const lines = this.content.split('\n');
 			lines.forEach(line => {
-				const lineEl = contentDiv.createDiv();
-				if (line === '---') {
-					lineEl.createEl('hr');
-				} else {
-					lineEl.innerHTML = line;
+				if (line.startsWith('Summary:')) {
+					const summaryEl = contentDiv.createEl('div', {
+						cls: 'vts-results-summary'
+					});
+					summaryEl.createEl('strong', { text: line });
+				} else if (line.includes('"') && !line.startsWith('---')) {
+					const [filePath, ...rest] = line.substring(2).split('" at line ');
+					const lineEl = contentDiv.createDiv();
+					lineEl.createSpan({ text: '• ' });
+					
+					const link = lineEl.createEl('a', {
+						cls: 'internal-link',
+						text: filePath
+					});
+					
+					link.addEventListener('click', (event) => {
+						event.preventDefault();
+						const tfile = this.app.vault.getFileByPath(filePath);
+						if (tfile) {
+							this.app.workspace.getLeaf().openFile(tfile);
+						}
+					});
+					
+					const [lineNum, imageText] = rest[0].split(': ');
+					lineEl.createSpan({ text: ` at line ${lineNum}: ` });
+					
+					const italicMatch = imageText.match(/"<i>(.*?)<\/i>"/);
+					if (italicMatch) {
+						lineEl.createSpan({ text: '"' });
+						lineEl.createEl('i', { text: italicMatch[1] });
+						lineEl.createSpan({ text: '"' });
+					}
 				}
 			});
 		} else {
@@ -158,7 +185,7 @@ export default class FMI extends Plugin {
 
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
-							const logMessage = `• "<b>${file.path}</b>" at line ${index + 1}: "<i>${imageFile}</i>"`;
+							const logMessage = `• "${file.path}" at line ${index + 1}: "<i>${imageFile}</i>"`;
 								results.push(logMessage);
 								brokenLinksCount++;
 						}
@@ -176,9 +203,10 @@ export default class FMI extends Plugin {
 
 		const view = await this.activateView();
 		if (view) {
-			results.push(`\n---\nSummary:\nBroken links found: ${brokenLinksCount}`);
+			results.push('\n---');
+			results.push(`Summary: ${brokenLinksCount} missing ${brokenLinksCount === 1 ? 'image' : 'images'} found`);
 			await view.setContent(results.join('\n'));
-			new Notice(`Total broken links found: ${brokenLinksCount}`);
+			new Notice(`Found ${brokenLinksCount} missing ${brokenLinksCount === 1 ? 'image' : 'images'}`);
 		}
 	}
 
