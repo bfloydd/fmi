@@ -21,7 +21,7 @@ export default class FMI extends Plugin {
 
 		this.addCommand({
 			id: 'find-broken-image-links',
-			name: 'Find Broken Image Links',
+			name: 'Search',
 			callback: () => {
 				this.findBrokenImageLinks();
 			}
