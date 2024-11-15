@@ -40,12 +40,14 @@ export default class FMI extends Plugin {
 	}
 
 	private extractImageLinks(line: string): string[] {
-		const regex = /\[\[(.*?\.(jpg|jpeg|png|gif|bmp))(?:\|.*?)?\]\]/gi;
+		const regex = /!?\[\[(.*?\.(jpg|jpeg|png|gif|bmp))(?:\|.*?)?\]\]/gi;
 		const matches: string[] = [];
 		let match;
 
 		while ((match = regex.exec(line)) !== null) {
-			matches.push(match[1]);
+			const fullPath = match[1];
+			const filename = fullPath.split('/').pop() || '';
+			matches.push(filename);
 		}
 		return matches;
 	}
@@ -81,7 +83,13 @@ export default class FMI extends Plugin {
 
 						const exists = await this.imageExists(imagePath);
 						if (!exists) {
-							console.log(`Broken link found in file '${file.path}' at line ${index + 1}: ${imagePath}`);
+							const logMessage = `Broken link found in file '${file.path}' at line ${index + 1}: ${imageFile}`;
+							console.log(logMessage);
+							const logRegex = /Broken link found in file .* line \d+: (.+)/;
+							const match = logRegex.exec(logMessage);
+							if (match) {
+								const filename = match[1].split('/').pop() || '';
+							}
 							brokenLinksCount++;
 						}
 					});
