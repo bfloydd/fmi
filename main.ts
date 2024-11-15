@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFolder, WorkspaceLeaf, ItemView, ViewStateResult } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFolder, WorkspaceLeaf, ItemView } from 'obsidian';
 
 interface FMISettings {
 	attachmentsFolder: string;
